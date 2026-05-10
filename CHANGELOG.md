@@ -1,0 +1,41 @@
+# Codex Credit Counter Changelog
+
+## [0.2.0] - 2026-05-10
+
+## Added
+- cli parameter `--type` specifies output type
+    - `compact` output only credit usage (default)
+    - `ext` outputs extended credit usage
+    - `json` outputs each `token_count` event as json
+    - `jsonl` outputs each `token_count` event as jsonl
+    - `xlsx` write each `token_count` event to excel file
+        - uses `openpyxl` library
+        - `xlsx` extra as optional dependency
+- cli parameter `-follow` continously watches sessions for changes and updates output
+    - uses `watchdog` library
+    - `follow` extra as optional dependency
+- cli parameter `-v` and `-vv` control logging level
+- pyproject.toml: `codexcost` cli script
+- pyproject.toml: `all` optional dependency
+- added README.md with installation and usage information
+
+## Changed
+- single script broken into separate modules
+- rename cli parameter `--full-history` to `--all-history`
+    - rename shorthand `-f` to `-a` to make place for parameter for follow mode
+- remove cli parameter `--csv`; use `--type csv` instead
+- remove cli parameter `--csv-excel`; use `--type xlsx` for excel xlsx output
+
+## Fixed
+- correct handling of `token_count` duplicates
+    - `token_count` events must increase `total_tokens` to be counted
+
+## [0.1.0] - 2026-05-04
+
+- first prototype
+
+### Added
+- calculate credit count for current month
+- parameter `--full-history`: calculate credit count for complete history
+- parameter `--csv`: export token count as csv
+- parameter `--csv-excel`: export token count as excel csv

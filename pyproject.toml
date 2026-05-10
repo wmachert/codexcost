@@ -1,0 +1,20 @@
+[project]
+name = "codexcost"
+version = "0.2.0"
+description = "Collects cost relevant usage information from OpenAIs Codex."
+readme = "README.md"
+authors = [{name="Wolfang Machert", email="wmachert@touchstorm.net"}]
+license = "MIT"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+all = [
+    "openpyxl>=3.1.5",
+    "watchdog>=6.0.0"
+]
+follow = ["watchdog>=6.0.0"]
+xlsx = ["openpyxl>=3.1.5"]
+
+[project.scripts]
+codexcost = "codexcost.cli:main"
