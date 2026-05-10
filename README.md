@@ -9,8 +9,10 @@ codexcost collects cost relevant usage information from OpenAIs Codex local sess
 At the moment there is no registered package, so you have to install codexcost directly from github, i.e. using uvx:
 
 ```sh
-uv tool install codexcost[all] --from git+https://github.com/wmachert/codexinfo
+uv tool install --from git+https://github.com/wmachert/codexcost[all] codexcost
 ```
+
+> The `all` extras include the dependencies for both the `follow` and `xlsx` features.
 
 You can then run the tool using:
 ```sh
@@ -22,10 +24,12 @@ uvx codexcost
 Some useful parameters:
 
 - show current month credit usage: `uvx codexcost`
-- follow codex credit usage with extended informations (requires `follow` extra): `uvx codexcost -ft ext`
+- follow codex credit usage with extended informations: `uvx codexcost -ft ext`
 - export all existing credit usage data in *csv* format to *usage.csv*: `uvx codexcost -at csv -o usage.csv`
-- export all existing credit usage data as excel file to *usage.xlsx* (requires `xlsx` extra): `uvx codexcost -at xlsx -o usage.xslx`
+- export all existing credit usage data as excel file to *usage.xlsx*: `uvx codexcost -at xlsx -o usage.xslx`
 - show help page: `uvx codexcost --help`
+
+
 
 ## Linux / OSX Platform
 
@@ -36,7 +40,7 @@ If you encounter any problems on those platforms, contact me and we'll try to fi
 
 Codex sessions periodically contains token_usage events, that state the current and total token usage for the previous messages (usually at least once after each task).
 
-codexinfo multiplies input, cached input, and output tokens for each of these token_usage events individually with the cost for the used model according to the [Codex rate card](https://help.openai.com/en/articles/20001106-codex-rate-card#codex-rate-card-token-based-pricing) and accumulates the resulting credits.
+codexcost multiplies input, cached input, and output tokens for each of these token_usage events individually with the cost for the used model according to the [Codex rate card](https://help.openai.com/en/articles/20001106-codex-rate-card#codex-rate-card-token-based-pricing) and accumulates the resulting credits.
 
 While the calculation seems simple, there is no reliable published algorithm on how the actual cost is calculated.
 
