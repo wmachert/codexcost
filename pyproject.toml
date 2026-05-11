@@ -2,9 +2,11 @@
 name = "codexcost"
 version = "0.2.0"
 description = "Collects cost relevant usage information from OpenAIs Codex."
-readme = "README.md"
+
 authors = [{name="Wolfang Machert", email="wmachert@touchstorm.net"}]
 license = "MIT"
+readme = "README.md"
+
 requires-python = ">=3.13"
 dependencies = []
 
@@ -18,3 +20,7 @@ xlsx = ["openpyxl>=3.1.5"]
 
 [project.scripts]
 codexcost = "codexcost.cli:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
