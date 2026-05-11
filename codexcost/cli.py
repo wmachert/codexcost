@@ -24,7 +24,7 @@ def build_argparser() -> ArgumentParser:
     argparser.add_argument('--version', action='version', version=f'%(prog)s {__version__}')
     return argparser
 
-def main(args: Iterable[str] | None = None) -> int:
+def main(args: Iterable[str] | None = None) -> None:
     '''Collect and output codex usage information'''
     argp = build_argparser().parse_args(args if args is not None else sys.argv[1:])
 
@@ -58,17 +58,17 @@ def main(args: Iterable[str] | None = None) -> int:
         case 'json':
             if argp.follow:
                 logging.error('Json format is unsuitable for follow mode. Choose another format.')
-                return 1
+                raise SystemExit(1)
             write = functools.partial(write_json, file=argp.output)
         case 'jsonl':
             write = functools.partial(write_jsonl, file=argp.output, log_mode=argp.follow)
         case 'xlsx':
             if argp.follow:
                 logging.error('Xlsx format is unsuitable for follow mode. Choose another format.')
-                return 1
+                raise SystemExit(1)
             if argp.output is None:
                 logging.error('Empty parameter output. Xlsx format requires OUTPUT_FILE.')
-                return 1
+                raise SystemExit(1)
 
             from codexcost.io.excel import write_xlsx
             write = functools.partial(write_xlsx, file=argp.output)
@@ -90,10 +90,10 @@ def main(args: Iterable[str] | None = None) -> int:
             write(counts)
     except (BrokenPipeError, OSError) as e:
         logging.error('Encountered piping error while writing output', exc_info=e)
-        return 1
+        raise SystemExit(1)
     
-    return 0
+    raise SystemExit(0)
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
