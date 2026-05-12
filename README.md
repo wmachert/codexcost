@@ -38,7 +38,7 @@ If you encounter any problems on those platforms, create an issue and we'll try 
 
 Codex sessions periodically contain token_usage events, that state the current and total token usage for the previous messages (usually at least once after each task).
 
-codexcost multiplies input, cached input, and output tokens individually with the cost for the used model according to the [Codex rate card](https://help.openai.com/en/articles/20001106-codex-rate-card#codex-rate-card-token-based-pricing) for each of these token_usage events and accumulates the resulting credits.
+codexcost multiplies uncached input, cached input, and output tokens individually with the cost for the used model according to the [Codex rate card](https://help.openai.com/en/articles/20001106-codex-rate-card#codex-rate-card-token-based-pricing) for each of these token_usage events and accumulates the resulting credits.
 
 While the calculation seems simple, there is no reliable published algorithm on how the actual cost is calculated.
 
