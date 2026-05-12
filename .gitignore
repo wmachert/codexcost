@@ -1,2 +1,8 @@
+# python
 .venv/
 **/__pycache__/
+
+# build artefacts
+.bundle/
+build/
+codexcost.egg-info/
