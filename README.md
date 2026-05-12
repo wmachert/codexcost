@@ -51,4 +51,4 @@ Keep that in mind when using codexcost.
 
 ## License
 
-codexcost is licensed unter [MIT license](LICENSE).
+codexcost is licensed under [MIT license](LICENSE).
