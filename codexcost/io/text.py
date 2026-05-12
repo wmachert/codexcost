@@ -48,11 +48,11 @@ def write_csv(token_counts: Iterable[TokenCount], file:IO|Path|None=None, log_mo
 
     try:
         if not log_mode:
-            print('session,timestamp,model,input_tokens,cached_input_tokens,output_tokens,reasoning_output_tokens,credits', file=io)
+            print('session,timestamp,model,uncached_input_tokens,cached_input_tokens,output_tokens,reasoning_output_tokens,credits', file=io)
 
         for count in token_counts:
             print(count.session, count.timestamp.isoformat(), count.model,
-                count.input_tokens, count.cached_input_tokens, count.output_tokens,
+                count.uncached_input_tokens, count.cached_input_tokens, count.output_tokens,
                 count.reasoning_output_tokens, count.credits,
                 sep=',', file=io)
     finally:

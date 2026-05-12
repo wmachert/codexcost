@@ -1,6 +1,6 @@
 [project]
 name = "codexcost"
-version = "0.2.0"
+version = "0.2.1"
 description = "Collects cost relevant usage information from OpenAIs Codex."
 
 authors = [{name="Wolfang Machert", email="wmachert@touchstorm.net"}]

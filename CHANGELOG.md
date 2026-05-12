@@ -1,5 +1,15 @@
 # Codex Credit Counter Changelog
 
+## [0.2.1] - 2026-05-12
+
+## Fixed
+- correct credit calculation
+
+    Credits have been calculated with input_tokens * rate + cached_tokens * rate + output_tokens * rate.
+    This falsely counts cached_tokens both at cached rate and again at input rate.
+    This has been corrected to calculate only the *actual uncached* input_tokens at input rate with
+    (input_tokens - chached_tokens) * rate + cached_tokens * rate + output_tokens * rate.
+
 ## [0.2.0] - 2026-05-10
 
 ## Added

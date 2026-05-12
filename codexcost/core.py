@@ -15,15 +15,15 @@ DATE_FORMAT = '%Y-%m-%d'
 # date time format used in output
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-# default fallback model used for cost calculation when cost of actual model is unknown
+# default fallback model used for cost calculation when rates for used model are unknown
 DEFAULT_MODEL = 'gpt-5.5'
 
 # 1 million token unit
 MT = 1_000_000
 
-# chatgpt enterprise credit cost per token
+# chatgpt enterprise credit rates per token
 # see: https://help.openai.com/en/articles/20001106-codex-rate-card#codex-rate-card-token-based-pricing
-MODEL_COSTS: dict[str,dict[str,float]] = {
+MODEL_RATES: dict[str,dict[str,float]] = {
     'gpt-5.5': {'input': 125 / MT, 'cached': 12.5 / MT, 'output': 750 / MT},
     'gpt-5.4': {'input': 62.5 / MT, 'cached': 6.25 / MT, 'output': 375 / MT},
     'gpt-5.4-mini': {'input': 18.75 / MT, 'cached': 1.875 / MT, 'output': 113 / MT},
@@ -40,7 +40,7 @@ class TokenCount:
     session: str
     timestamp: datetime
     model: str | None
-    input_tokens: int
+    uncached_input_tokens: int
     cached_input_tokens: int
     output_tokens: int
     reasoning_output_tokens: int
@@ -93,38 +93,40 @@ def parse_token_counts(session: Path, id: str | None = None, session_state:Sessi
                 # token count infos, skip token_count events with empty info (rate_limits reminder messages)
                 case 'event_msg' if data['payload']['type'] == 'token_count' and data['payload']['info'] is not None:
                     info = data['payload']['info']
+                    total_total_token = info['total_token_usage']['total_tokens']
 
                     # suppress token_count messages that do not advance the total_tokens (token_count refresh messages)
-                    if session_state.total_tokens < info['total_token_usage']['total_tokens']:
-                        session_state.total_tokens = info['total_token_usage']['total_tokens']
+                    if session_state.total_tokens < total_total_token:
+                        session_state.total_tokens = total_total_token
                         last_token_usage = info['last_token_usage']
+                        cached_input_tokens = last_token_usage['cached_input_tokens']
 
                         count = TokenCount(session=id, timestamp=datetime.fromisoformat(data['timestamp']), model=session_state.model,
-                            input_tokens=last_token_usage['input_tokens'], cached_input_tokens=last_token_usage['cached_input_tokens'],
+                            uncached_input_tokens=last_token_usage['input_tokens'] - cached_input_tokens, cached_input_tokens=cached_input_tokens,
                             output_tokens=last_token_usage['output_tokens'], reasoning_output_tokens=last_token_usage['reasoning_output_tokens'],
                             credits=0)
                         count.credits = _calculate_credits(count)
                         
                         logging.debug('Token count in Session. session=%s, datetime=%s, model=%s total_tokens=%s credits=%s',
                             count.session, count.timestamp.strftime(DATE_FORMAT), count.model,
-                            count.input_tokens + count.output_tokens, count.credits)
+                            count.uncached_input_tokens + count.cached_input_tokens + count.output_tokens, count.credits)
                         yield count
     
     return session_state
 
 def _calculate_credits(count: TokenCount) -> float:
-    '''Calculate combined used credits for input, cached input, and output tokens.
+    '''Calculate accumulated credits for used uncached input, cached input, and output tokens.
     
     Credits are assumed to be derived from a shared credit pool, enabling per-token usage rather than fixed million-token blocks.
     '''
-    if count.model not in MODEL_COSTS:
-        logging.warning('Missing model cost; using default model cost. session=%s model=%s default=%s', count.session, count.model, DEFAULT_MODEL)
+    if count.model not in MODEL_RATES:
+        logging.warning('Missing model cost; using default model to calculate cost. session=%s model=%s default=%s', count.session, count.model, DEFAULT_MODEL)
 
-    model_cost = MODEL_COSTS[count.model if count.model in MODEL_COSTS else DEFAULT_MODEL]
+    cost = MODEL_RATES[count.model if count.model in MODEL_RATES else DEFAULT_MODEL]
 
-    return count.input_tokens * model_cost['input'] \
-        + count.cached_input_tokens * model_cost['cached'] \
-        + count.output_tokens * model_cost['output']
+    return count.uncached_input_tokens * cost['input'] \
+        + count.cached_input_tokens * cost['cached'] \
+        + count.output_tokens * cost['output']
 
 def _session_id(session:Path, base:Path):
     '''Calculate session id as unix path relative to a base path.
