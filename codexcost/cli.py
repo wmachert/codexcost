@@ -1,6 +1,6 @@
 from codexcost.__version__ import __version__
 from codexcost.core import find_sessions, parse_session
-from codexcost.io.text import CreditsLogWriter, write_csv, write_json, write_jsonl
+from codexcost.io.text import CreditsTokenCountHandler, write_csv, write_json, write_jsonl
 import functools
 import logging
 from pathlib import Path
@@ -50,18 +50,18 @@ def main(args: Iterable[str] | None = None) -> None:
     # setup output target
     match argp.type:
         case 'compact':
-            write = CreditsLogWriter(file=argp.output, extended_info=False)
+            write = CreditsTokenCountHandler(file=argp.output, extended_info=False)
         case 'csv':
-            write = functools.partial(write_csv, file=argp.output, log_mode=argp.follow)
+            write = functools.partial(write_csv, file=argp.output, incremental=argp.follow)
         case 'ext':
-            write = CreditsLogWriter(file=argp.output, extended_info=True)
+            write = CreditsTokenCountHandler(file=argp.output, extended_info=True)
         case 'json':
             if argp.follow:
                 logging.error('Json format is unsuitable for follow mode. Choose another format.')
                 raise SystemExit(1)
             write = functools.partial(write_json, file=argp.output)
         case 'jsonl':
-            write = functools.partial(write_jsonl, file=argp.output, log_mode=argp.follow)
+            write = functools.partial(write_jsonl, file=argp.output, incremental=argp.follow)
         case 'xlsx':
             if argp.follow:
                 logging.error('Xlsx format is unsuitable for follow mode. Choose another format.')

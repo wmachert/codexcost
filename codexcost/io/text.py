@@ -7,7 +7,7 @@ import sys
 from typing import Iterable, IO
 
 
-class CreditsLogWriter:
+class CreditsTokenCountHandler:
     def __init__(self, file:IO|Path|None=None, extended_info=False, datetime_format='%m-%d %H:%M'):
         self.file = file
         self.extended_info = extended_info
@@ -36,20 +36,20 @@ class CreditsLogWriter:
             io.close()
 
 
-def write_csv(token_counts: Iterable[TokenCount], file:IO|Path|None=None, log_mode=False):
+def write_csv(token_counts: Iterable[TokenCount], file:IO|Path|None=None, incremental=False):
     '''Export s list of TokenCount as csv'''
-    if not log_mode:
+    if not incremental:
         logging.info('Output token counts as csv.')
 
     if file is None:
         io = sys.stdout
     elif isinstance(file, Path):
-        io = file.open('w' if not log_mode else 'a', encoding='utf-8', newline='\n')
+        io = file.open('w' if not incremental else 'a', encoding='utf-8', newline='\n')
     else:
         io = file
 
     try:
-        if not log_mode:
+        if not incremental:
             print('session,project,timestamp,model,uncached_input_tokens,cached_input_tokens,output_tokens,reasoning_output_tokens,credits', file=io)
 
         for count in token_counts:
@@ -95,15 +95,15 @@ def write_json(token_counts: Iterable[TokenCount], file:IO|Path|None=None):
         if isinstance(file, Path):
             io.close()
 
-def write_jsonl(token_counts: Iterable[TokenCount], file:IO|Path|None=None, log_mode=False):
+def write_jsonl(token_counts: Iterable[TokenCount], file:IO|Path|None=None, incremental=False):
     '''Export list of TokenCount as jsonl'''
-    if not log_mode:
+    if not incremental:
         logging.info('Output token counts as jsonl.')
 
     if file is None:
         io = sys.stdout
     elif isinstance(file, Path):
-        io = file.open('w' if not log_mode else 'a', encoding='utf-8', newline='\n')
+        io = file.open('w' if not incremental else 'a', encoding='utf-8', newline='\n')
     else:
         io = file
 
