@@ -7,13 +7,7 @@ from typing import Generator, Callable, Iterable
 
 
 # codex sessions base path
-CODEX_SESSION_PATH = Path.home() / '.codex' / 'sessions'
-
-# date format used in output
-DATE_FORMAT = '%Y-%m-%d'
-
-# date time format used in output
-DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+CODEX_SESSION_PATH = Path.home() / '.codex/sessions'
 
 # default fallback model used for cost calculation when rates for used model are unknown
 DEFAULT_MODEL = 'gpt-5.5'
@@ -120,7 +114,7 @@ def parse_session(context:SessionContext|Path) -> Generator[TokenCount, None, Se
                         count.credits = _calculate_credits(count)
                         
                         logging.debug('Token usage in Session. id=%s, timestamp=%s, model=%s total_tokens=%s credits=%s',
-                            count.id, count.timestamp.strftime(DATE_FORMAT), count.model,
+                            count.id, count.timestamp.strftime('%Y-%m-%d'), count.model,
                             count.uncached_input_tokens + count.cached_input_tokens + count.output_tokens, count.credits)
                         yield count
     

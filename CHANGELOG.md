@@ -12,6 +12,9 @@
 - refactor: rename io.text.`CreditsLogWriter` to `CreditsIncrementalOutputHandler`
 - refactor: move incremental session parsing from watcher.`watch` to core.`parse_session_incremental`
 
+### Removed
+- remove core.`DATE_FORMAT` and `DATETIME_FORMAT` and handle date formats inline
+
 ## [0.2.1] - 2026-05-12
 
 ### Fixed
