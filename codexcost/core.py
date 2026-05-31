@@ -1,7 +1,7 @@
-import json
-import logging
 from dataclasses import dataclass
 from datetime import datetime
+import json
+import logging
 from pathlib import Path
 from typing import Generator
 
@@ -37,19 +37,24 @@ MODEL_RATES: dict[str,dict[str,float]] = {
 
 @dataclass
 class TokenCount:
-    session: str
+    id: str | None
+    project: str | None
     timestamp: datetime
     model: str | None
+    
     uncached_input_tokens: int
     cached_input_tokens: int
     output_tokens: int
     reasoning_output_tokens: int
-    credits: float
+    credits: float = 0.0
 
 @dataclass
 class SessionContext:
-    line_no = 0
+    path: Path
+    last_line = 0
     total_tokens = 0.0
+    project:str|None = None
+    id:str|None = None
     model:str|None = None
 
 
@@ -63,56 +68,62 @@ def find_sessions(base_path: Path|None=None) -> Generator[Path, None, None]:
         if file.is_file():
             yield file
 
-def parse_session(session: Path, id: str | None = None, session_state:SessionContext|None=None) -> Generator[TokenCount, None, SessionContext]:
+def parse_session(context:SessionContext|Path) -> Generator[TokenCount, None, SessionContext]:
     '''Extract all token count informations from a codex session file.
     '''
-    if id is None:
-        id = _session_id(session, CODEX_SESSION_PATH)
-
-    if session_state is None:
-        skip_lines, session_state = 0, SessionContext()
+    # parse from the beginning
+    if isinstance(context, Path):
+        skip_lines, context = 0, SessionContext(context)
+    # parse from the last parsed line
     else:
-        skip_lines, session_state.line_no = session_state.line_no, 0
+        skip_lines, context.last_line = context.last_line, 0
 
-    with session.open('r', encoding='utf-8') as file:
+    with context.path.open('r', encoding='utf-8') as file:
         for line in file:
-            session_state.line_no += 1
-            
-            # skip lines until the next new line
-            if session_state.line_no <= skip_lines:
+            context.last_line += 1
+
+            # skip processing lines until a new line
+            if context.last_line <= skip_lines:
                 continue
 
             data = json.loads(line)
 
             match data['type']:
-                # model switched
-                case 'turn_context':
-                    session_state.model = data['payload']['model']
-                    logging.debug('Session %s switched to model: %s', id, session_state.model)
+                # metadata
+                case 'session_meta':
+                    context.id = data['payload']['id']
+                    context.project = Path(data['payload']['cwd']).name
 
-                # token count infos, skip token_count events with empty info (rate_limits reminder messages)
+                    logging.debug('Session identified. id=%s project=%s', context.id, context.project)
+
+                # model switch
+                case 'turn_context':
+                    context.model = data['payload']['model']
+                    
+                    logging.debug('Session switched model. id=%s model=%s', context.id, context.model)
+
+                # token usage, skip event with empty $.payload.info (rate limit messages)
                 case 'event_msg' if data['payload']['type'] == 'token_count' and data['payload']['info'] is not None:
                     info = data['payload']['info']
-                    total_total_token = info['total_token_usage']['total_tokens']
+                    ttu_total_token = info['total_token_usage']['total_tokens']
 
                     # suppress token_count messages that do not advance the total_tokens (token_count refresh messages)
-                    if session_state.total_tokens < total_total_token:
-                        session_state.total_tokens = total_total_token
-                        last_token_usage = info['last_token_usage']
-                        cached_input_tokens = last_token_usage['cached_input_tokens']
+                    if context.total_tokens < ttu_total_token:
+                        context.total_tokens = ttu_total_token
+                        ltu = info['last_token_usage']
+                        cached_input_tokens = ltu['cached_input_tokens']
 
-                        count = TokenCount(session=id, timestamp=datetime.fromisoformat(data['timestamp']), model=session_state.model,
-                            uncached_input_tokens=last_token_usage['input_tokens'] - cached_input_tokens, cached_input_tokens=cached_input_tokens,
-                            output_tokens=last_token_usage['output_tokens'], reasoning_output_tokens=last_token_usage['reasoning_output_tokens'],
-                            credits=0)
+                        count = TokenCount(context.id, context.project, datetime.fromisoformat(data['timestamp']), context.model,
+                            uncached_input_tokens=ltu['input_tokens'] - cached_input_tokens, cached_input_tokens=cached_input_tokens,
+                            output_tokens=ltu['output_tokens'], reasoning_output_tokens=ltu['reasoning_output_tokens'])
                         count.credits = _calculate_credits(count)
                         
-                        logging.debug('Token count in Session. session=%s, datetime=%s, model=%s total_tokens=%s credits=%s',
-                            count.session, count.timestamp.strftime(DATE_FORMAT), count.model,
+                        logging.debug('Token usage in Session. id=%s, timestamp=%s, model=%s total_tokens=%s credits=%s',
+                            count.id, count.timestamp.strftime(DATE_FORMAT), count.model,
                             count.uncached_input_tokens + count.cached_input_tokens + count.output_tokens, count.credits)
                         yield count
     
-    return session_state
+    return context
 
 def _calculate_credits(count: TokenCount) -> float:
     '''Calculate accumulated credits for used uncached input, cached input, and output tokens.
@@ -120,17 +131,10 @@ def _calculate_credits(count: TokenCount) -> float:
     Credits are assumed to be derived from a shared credit pool, enabling per-token usage rather than fixed million-token blocks.
     '''
     if count.model not in MODEL_RATES:
-        logging.warning('Missing model cost; using default model to calculate cost. session=%s model=%s default=%s', count.session, count.model, DEFAULT_MODEL)
+        logging.warning('Missing model cost; using default model to calculate cost. id=%s model=%s default_model=%s', count.id, count.model, DEFAULT_MODEL)
 
     cost = MODEL_RATES[count.model if count.model in MODEL_RATES else DEFAULT_MODEL]
 
     return count.uncached_input_tokens * cost['input'] \
         + count.cached_input_tokens * cost['cached'] \
         + count.output_tokens * cost['output']
-
-def _session_id(session:Path, base:Path):
-    '''Calculate session id as unix path relative to a base path.
-    
-    This is usually the session filename path without the codex base session path prefix.
-    '''
-    return str(session.relative_to(base)).replace('\\', '/')

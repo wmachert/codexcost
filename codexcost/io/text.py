@@ -1,4 +1,4 @@
-from codexcost.core import TokenCount, DATETIME_FORMAT
+from codexcost.core import TokenCount
 from dataclasses import asdict
 import json
 import logging
@@ -8,8 +8,10 @@ from typing import Iterable, IO
 
 
 class CreditsLogWriter:
-    def __init__(self, file:IO|Path|None=None, extended_info=False):
-        self.file, self.extended_info = file, extended_info
+    def __init__(self, file:IO|Path|None=None, extended_info=False, datetime_format='%m-%d %H:%M'):
+        self.file = file
+        self.extended_info = extended_info
+        self.datetime_format = datetime_format
         self.credits = 0
 
     def __call__(self, token_counts: Iterable[TokenCount]):
@@ -26,7 +28,7 @@ class CreditsLogWriter:
             io = self.file
 
         if self.extended_info:
-            print(f'{self.credits:.3f}\t+ {add_credits:.3f} {newest.model} {newest.timestamp.strftime(DATETIME_FORMAT)}', file=io)
+            print(f'{self.credits:.3f}\t+{add_credits:.3f} {newest.timestamp.strftime(self.datetime_format)} {newest.project} {newest.model}', file=io)
         else:
             print(f'{self.credits:.3f}', file=io)
     
@@ -48,12 +50,12 @@ def write_csv(token_counts: Iterable[TokenCount], file:IO|Path|None=None, log_mo
 
     try:
         if not log_mode:
-            print('session,timestamp,model,uncached_input_tokens,cached_input_tokens,output_tokens,reasoning_output_tokens,credits', file=io)
+            print('session,project,timestamp,model,uncached_input_tokens,cached_input_tokens,output_tokens,reasoning_output_tokens,credits', file=io)
 
         for count in token_counts:
-            print(count.session, count.timestamp.isoformat(), count.model,
-                count.uncached_input_tokens, count.cached_input_tokens, count.output_tokens,
-                count.reasoning_output_tokens, count.credits,
+            print(count.id, count.project, count.timestamp.isoformat(), count.model,
+                count.uncached_input_tokens, count.cached_input_tokens,
+                count.output_tokens, count.reasoning_output_tokens, count.credits,
                 sep=',', file=io)
     finally:
         if isinstance(file, Path):

@@ -18,11 +18,12 @@ def write_xlsx(token_counts: Iterable[TokenCount], file:Path):
     
     def transform(token_count:TokenCount) -> dict[str,Any]:
         return {'Timestamp': token_count.timestamp.replace(tzinfo=None),
-            'Session': token_count.session, 'Model': token_count.model,
-            'Uncached Input': token_count.uncached_input_tokens, 'Cached Input': token_count.cached_input_tokens, 'Output': token_count.output_tokens,
-            'Credits': token_count.credits}
+            'Session': token_count.id, 'Model': token_count.model, 'Project': token_count.project,
+            'Uncached Input': token_count.uncached_input_tokens, 'Cached Input': token_count.cached_input_tokens,
+            'Output': token_count.output_tokens, 'Credits': token_count.credits}
 
-    headers = (('Timestamp', 'datetime'), ('Session', 'str'), ('Model', 'str'), ('Uncached Input', 'int'), ('Cached Input', 'int'), ('Output', 'int'), ('Credits', 'float'))
+    headers = (('Timestamp', 'datetime'), ('Session', 'str'), ('Model', 'str'), ('Project', 'str'),
+        ('Uncached Input', 'int'), ('Cached Input', 'int'), ('Output', 'int'), ('Credits', 'float'))
 
     __write_excel_worksheet_table(map(transform, token_counts), headers, file, sheet_name='Codex Token Usage')
 

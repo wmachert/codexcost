@@ -1,8 +1,18 @@
 # Codex Credit Counter Changelog
 
+## [Unreleased]
+
+### Added
+- feat: add session id and project name (parsed from session cwd) to SessionContext
+- feat: various output handler output id and project name
+
+### Changed
+- refactor: rename core.`SessionState` to `SessionContext`
+- refactor: rename core.`parse_token_counter` to `parse_session`
+
 ## [0.2.1] - 2026-05-12
 
-## Fixed
+### Fixed
 - correct credit calculation
 
     Credits have been calculated with input_tokens * rate + cached_tokens * rate + output_tokens * rate.
@@ -12,7 +22,7 @@
 
 ## [0.2.0] - 2026-05-10
 
-## Added
+### Added
 - cli parameter `--type` specifies output type
     - `compact` output only credit usage (default)
     - `ext` outputs extended credit usage
@@ -29,14 +39,14 @@
 - pyproject.toml: `all` optional dependency
 - added README.md with installation and usage information
 
-## Changed
+### Changed
 - single script broken into separate modules
 - rename cli parameter `--full-history` to `--all-history`
     - rename shorthand `-f` to `-a` to make place for parameter for follow mode
 - remove cli parameter `--csv`; use `--type csv` instead
 - remove cli parameter `--csv-excel`; use `--type xlsx` for excel xlsx output
 
-## Fixed
+### Fixed
 - correct handling of `token_count` duplicates
     - `token_count` events must increase `total_tokens` to be counted
 
@@ -44,7 +54,7 @@
 
 - first prototype
 
-### Added
+#### Added
 - calculate credit count for current month
 - parameter `--full-history`: calculate credit count for complete history
 - parameter `--csv`: export token count as csv
