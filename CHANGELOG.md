@@ -9,6 +9,8 @@
 ### Changed
 - refactor: rename core.`SessionState` to `SessionContext`
 - refactor: rename core.`parse_token_counter` to `parse_session`
+- refactor: rename io.text.`CreditsLogWriter` to `CreditsIncrementalOutputHandler`
+- refactor: move incremental session parsing from watcher.`watch` to core.`parse_session_incremental`
 
 ## [0.2.1] - 2026-05-12
 

@@ -77,7 +77,7 @@ def main(args: Iterable[str] | None = None) -> None:
         # follow mode
         if argp.follow:
             from codexcost.watcher import watch
-            watch(start_timestamp, output=write)
+            watch(start_timestamp, output_handler=write)
 
         # output mode
         else:

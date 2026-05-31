@@ -1,4 +1,4 @@
-from codexcost.core import TokenCount, parse_session, SessionContext, CODEX_SESSION_PATH, find_sessions
+from codexcost.core import TokenCount, parse_session_incremental, SessionContext, CODEX_SESSION_PATH, find_sessions
 from typing import Generator, Iterable, Callable
 from datetime import datetime
 import logging
@@ -13,34 +13,18 @@ except ModuleNotFoundError as e:
     raise
 
 
-def watch(start_timestamp:datetime, output:Callable[[Iterable[TokenCount]],None], base_path: Path|None=None):
+def watch(start_timestamp:datetime, output_handler:Callable[[Iterable[TokenCount]],None], base_path: Path|None=None):
     '''Show and continuously update session credit information.'''
     if base_path is None:
         base_path = CODEX_SESSION_PATH
     
-    sessions:dict[Path,tuple[int,SessionContext]] = {}
+    sessions:dict[Path,SessionContext] = {}
 
     try:
         # seed with current sessions to build initial sessions state index
         for session in _watch_session_changes(base_path, seed=find_sessions(base_path)):
-            size, context = sessions.get(session, (0, SessionContext(session)))
-            new_size = session.stat().st_size
-
-            # modifications flushed changed to file so parse new tokens
-            if new_size > size:
-                try:
-                    gen = parse_session(context)
-                    
-                    while True:
-                        count = next(gen)
-                        # only output relevant token_counts
-                        if count.timestamp >= start_timestamp:
-                            output([count])
-                except StopIteration as e:
-                    context = e.value
-                
-                # store changed session infos
-                sessions[session] = (new_size, context)
+            sessions[session] = parse_session_incremental(sessions.get(session, SessionContext(session)),
+                output_handler, lambda x: start_timestamp <= x.timestamp)
     except KeyboardInterrupt:
         pass
 

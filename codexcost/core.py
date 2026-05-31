@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import logging
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Callable, Iterable
 
 
 # codex sessions base path
@@ -51,10 +51,11 @@ class TokenCount:
 @dataclass
 class SessionContext:
     path: Path
+    file_size = 0
     last_line = 0
     total_tokens = 0.0
-    project:str|None = None
     id:str|None = None
+    project:str|None = None
     model:str|None = None
 
 
@@ -123,6 +124,28 @@ def parse_session(context:SessionContext|Path) -> Generator[TokenCount, None, Se
                             count.uncached_input_tokens + count.cached_input_tokens + count.output_tokens, count.credits)
                         yield count
     
+    return context
+
+def parse_session_incremental(context:SessionContext, output_handler:Callable[[Iterable[TokenCount]],None], filter:Callable[[TokenCount], bool]|None=None) -> SessionContext:
+    '''Incrementally parse a session context, calling an output filter with TokenCount events that are optionally filtered.
+    '''
+    # check file size for changes
+    size = context.path.stat().st_size
+
+    # changes since last parse
+    if size > context.file_size:
+        context.file_size = size
+
+        try:
+            gen = parse_session(context)
+            
+            while True:
+                count = next(gen)
+                # only output relevant token_counts
+                if filter is None or filter(count):
+                    output_handler([count])
+        except StopIteration as e:
+            return e.value
     return context
 
 def _calculate_credits(count: TokenCount) -> float:
