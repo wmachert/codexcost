@@ -1,4 +1,4 @@
-from codexcost.core import TokenCount, parse_session_incremental, SessionContext, CODEX_SESSION_PATH, find_sessions
+from codexcost.core import TokenCount, parse_session_incremental, SessionContext, find_sessions, session_path
 from typing import Generator, Iterable, Callable
 from datetime import datetime
 import logging
@@ -16,7 +16,7 @@ except ModuleNotFoundError as e:
 def watch(start_timestamp:datetime, output_handler:Callable[[Iterable[TokenCount]],None], base_path: Path|None=None):
     '''Show and continuously update session credit information.'''
     if base_path is None:
-        base_path = CODEX_SESSION_PATH
+        base_path = session_path()
     
     sessions:dict[Path,SessionContext] = {}
 

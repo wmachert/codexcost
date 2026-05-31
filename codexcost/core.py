@@ -2,12 +2,10 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Generator, Callable, Iterable
 
-
-# codex sessions base path
-CODEX_SESSION_PATH = Path.home() / '.codex/sessions'
 
 # default fallback model used for cost calculation when rates for used model are unknown
 DEFAULT_MODEL = 'gpt-5.5'
@@ -52,10 +50,9 @@ class SessionContext:
     project:str|None = None
     model:str|None = None
 
-
 def find_sessions(base_path: Path|None=None) -> Generator[Path, None, None]:
     if base_path is None:
-        base_path = CODEX_SESSION_PATH
+        base_path = session_path()
 
     '''Get all codex session files.'''
     # read codex sessions from saved jsonl files
@@ -141,6 +138,10 @@ def parse_session_incremental(context:SessionContext, output_handler:Callable[[I
         except StopIteration as e:
             return e.value
     return context
+
+def session_path() -> Path:
+    codex_home = os.getenv('CODEX_HOME')
+    return ((Path.home() / '.codex') if codex_home is None else Path(codex_home)) / 'sessions'
 
 def _calculate_credits(count: TokenCount) -> float:
     '''Calculate accumulated credits for used uncached input, cached input, and output tokens.
