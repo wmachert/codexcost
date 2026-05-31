@@ -1,4 +1,4 @@
-from codexcost.core import TokenCount, parse_token_counts, SessionState, CODEX_SESSION_PATH, find_sessions
+from codexcost.core import TokenCount, parse_session, SessionContext, CODEX_SESSION_PATH, find_sessions
 from typing import Generator, Iterable, Callable
 from datetime import datetime
 import logging
@@ -18,18 +18,18 @@ def watch(start_timestamp:datetime, output:Callable[[Iterable[TokenCount]],None]
     if base_path is None:
         base_path = CODEX_SESSION_PATH
     
-    sessions:dict[Path,tuple[int,SessionState]] = {}
+    sessions:dict[Path,tuple[int,SessionContext]] = {}
 
     try:
         # seed with current sessions to build initial sessions state index
         for session in _watch_session_changes(base_path, seed=find_sessions(base_path)):
-            size, state = sessions.get(session, (0, SessionState()))
+            size, state = sessions.get(session, (0, SessionContext()))
             new_size = session.stat().st_size
 
             # modifications flushed changed to file so parse new tokens
             if new_size > size:
                 try:
-                    gen = parse_token_counts(session, session_state=state)
+                    gen = parse_session(session, session_state=state)
                     
                     while True:
                         count = next(gen)

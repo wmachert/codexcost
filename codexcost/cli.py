@@ -1,5 +1,5 @@
 from codexcost.__version__ import __version__
-from codexcost.core import find_sessions, parse_token_counts
+from codexcost.core import find_sessions, parse_session
 from codexcost.io.text import CreditsLogWriter, write_csv, write_json, write_jsonl
 import functools
 import logging
@@ -83,7 +83,7 @@ def main(args: Iterable[str] | None = None) -> None:
         else:
             counts = sorted((count
                     for session in find_sessions()
-                    for count in parse_token_counts(session)
+                    for count in parse_session(session)
                     if count.timestamp >= start_timestamp),
                 key=lambda x: x.timestamp)
 

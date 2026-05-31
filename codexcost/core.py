@@ -47,7 +47,7 @@ class TokenCount:
     credits: float
 
 @dataclass
-class SessionState:
+class SessionContext:
     line_no = 0
     total_tokens = 0.0
     model:str|None = None
@@ -63,14 +63,14 @@ def find_sessions(base_path: Path|None=None) -> Generator[Path, None, None]:
         if file.is_file():
             yield file
 
-def parse_token_counts(session: Path, id: str | None = None, session_state:SessionState|None=None) -> Generator[TokenCount, None, SessionState]:
+def parse_session(session: Path, id: str | None = None, session_state:SessionContext|None=None) -> Generator[TokenCount, None, SessionContext]:
     '''Extract all token count informations from a codex session file.
     '''
     if id is None:
         id = _session_id(session, CODEX_SESSION_PATH)
 
     if session_state is None:
-        skip_lines, session_state = 0, SessionState()
+        skip_lines, session_state = 0, SessionContext()
     else:
         skip_lines, session_state.line_no = session_state.line_no, 0
 
