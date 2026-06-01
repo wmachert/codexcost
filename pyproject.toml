@@ -13,9 +13,11 @@ dependencies = []
 [project.optional-dependencies]
 all = [
     "openpyxl>=3.1.5",
-    "watchdog>=6.0.0"
+    "watchdog>=6.0.0",
+    "windows-toasts>=1.3.1"
 ]
 follow = ["watchdog>=6.0.0"]
+notify = ["windows-toasts>=1.3.1"]
 xlsx = ["openpyxl>=3.1.5"]
 
 [project.scripts]

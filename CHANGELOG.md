@@ -6,6 +6,7 @@
 - feat: add session id and project name (parsed from session cwd) to SessionContext
 - feat: various output handler output id and project name
 - feat: Respect `CODEX_HOME` environment variable when calculating session path
+- feat: New token handler `notify` that sends native notifications on windows
 
 ### Changed
 - refactor: rename core.`SessionState` to `SessionContext`

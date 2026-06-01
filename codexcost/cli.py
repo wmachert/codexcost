@@ -18,7 +18,7 @@ def build_argparser() -> ArgumentParser:
     argparser.add_argument('-f', '--follow', action='store_true',
         help='follow session updates and continously refresh credit count')
     argparser.add_argument('-o', '--output', type=Path, metavar='OUTPUT_FILE', help='write output to file %(metavar)s')
-    argparser.add_argument('-t', '--type', default='compact', choices='compact|csv|ext|json|jsonl|xlsx'.split('|'),
+    argparser.add_argument('-t', '--type', default='compact', choices='compact|csv|ext|notify|json|jsonl|xlsx'.split('|'),
         help='format of the codex information (default: %(default)s)')
     argparser.add_argument('-v', '--verbose', action='count', default=0, help='verbose output; repeat to increase verbosity')
     argparser.add_argument('--version', action='version', version=f'%(prog)s {__version__}')
@@ -55,6 +55,9 @@ def main(args: Iterable[str] | None = None) -> None:
             write = functools.partial(write_csv, file=argp.output, incremental=argp.follow)
         case 'ext':
             write = CreditsTokenCountHandler(file=argp.output, extended_info=True)
+        case 'notify':
+            from codexcost.io.notification import WindowsToastTokenCountHandler
+            write = WindowsToastTokenCountHandler()
         case 'json':
             if argp.follow:
                 logging.error('Json format is unsuitable for follow mode. Choose another format.')
