@@ -13,6 +13,9 @@
 - refactor: rename io.text.`CreditsLogWriter` to `CreditsIncrementalOutputHandler`
 - refactor: move incremental session parsing from watcher.`watch` to core.`parse_session_incremental`
 
+### Fixed
+- `CreditsTokenCountHandler` no longer crashes when no credit usage occured
+
 ### Removed
 - remove core.`DATE_FORMAT` and `DATETIME_FORMAT` and handle date formats inline
 

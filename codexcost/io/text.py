@@ -16,9 +16,13 @@ class CreditsTokenCountHandler:
 
     def __call__(self, token_counts: Iterable[TokenCount]):
         '''Append credits for a list of TokenCount'''
-        add_credits = sum(count.credits for count in token_counts)
+        counts = list(token_counts)
+        if len(counts) == 0:
+            return
+
+        add_credits = sum(count.credits for count in counts)
         self.credits += add_credits
-        newest = max(token_counts, key=lambda x: x.timestamp)
+        newest = max(counts, key=lambda x: x.timestamp)
 
         if self.file is None:
             io = sys.stdout
