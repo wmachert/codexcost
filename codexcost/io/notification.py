@@ -23,4 +23,4 @@ class WindowsToastTokenCountHandler:
         newest = max(counts, key=lambda x: x.timestamp)
 
         print(self.credits)
-        self.toaster.show_toast(Toast([f'Total: {self.credits:.3f}', f'+{add_credits:.3f} {newest.project} {newest.model}']))
+        self.toaster.show_toast(Toast([f'{self.credits:.3f} credits used.', f'+{add_credits:.3f} credits in session: {newest.project} with model: {newest.model}']))
